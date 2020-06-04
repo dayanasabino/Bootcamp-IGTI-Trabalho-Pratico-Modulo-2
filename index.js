@@ -1,5 +1,5 @@
 const fs = require('fs');
-let globalAllStates = null;
+let globalAllStates = [];
 
 const readAllJsonFiles = () => {
   fs.readFile('Cidades.json', (err, data) => {
@@ -54,12 +54,13 @@ const citiesForStateParams = (state) => {
 };
 
 function citiesforAllStates() {
-  globalAllStates.forEach((state) => {
-    console.log('todos estados');
-    const countCities = fs.readFileSync(`States/${state}.json`);
-    const countCitiesParsed = JSON.parse(countCities);
-    console.log(`${state} possui ${countCitiesParsed.length} cidade(s)`);
-  });
+  const countCities = fs.readFileSync(`Estados.json`);
+  const countCitiesParsed = JSON.parse(countCities);
+  const countStatesWithCities = countCitiesParsed.map((state) => ({
+    state: state.Sigla,
+    cities: citiesForState(state.Sigla),
+  }));
+  return countStatesWithCities;
 }
 
 const citiesForState = (state) => {
@@ -67,11 +68,67 @@ const citiesForState = (state) => {
   // O método JSON.parse() analisa uma string JSON, construindo o valor ou um objeto JavaScript descrito pela string
   const countCitiesParsed = JSON.parse(countCities);
 
-  console.log(`${state} possui ${countCitiesParsed.length} cidade(s)`);
+  //console.log(`${state} possui ${countCitiesParsed.length} cidade(s)`);
+
+  const totalCities = countCitiesParsed.length;
+  // Se não tiver esse retorno a quantidade de cidades fica indefinida
+  return totalCities;
 };
 
-readAllJsonFiles();
+const statesWithMoreCities = () => {
+  const countCities = fs.readFileSync(`Estados.json`);
+  const countCitiesParsed = JSON.parse(countCities);
+  const countStatesWithCities = countCitiesParsed.map((state) => ({
+    uf: state.Sigla,
+    cities: citiesForState(state.Sigla),
+  }));
+
+  const orderedCities = countStatesWithCities.sort((b, a) => {
+    if (a.cities < b.cities) {
+      return -1;
+    } else if (a.cities > b.cities) {
+      return 1;
+    }
+    return 0;
+  });
+  // O método slice() retorna uma cópia de parte de um array a partir de um subarray criado entre as posições início(begin) e fim(end)(fim não é necessário) de um array original. O Array original não é modificado.
+  console.log(orderedCities.splice(0, 5));
+};
+
+const statesWithLessCities = () => {
+  const countCities = fs.readFileSync(`Estados.json`);
+  const countCitiesParsed = JSON.parse(countCities);
+  const countStatesWithCities = countCitiesParsed.map((state) => ({
+    uf: state.Sigla,
+    cities: citiesForState(state.Sigla),
+  }));
+
+  const orderedCities = countStatesWithCities.sort((a, b) => {
+    if (a.cities < b.cities) {
+      return -1;
+    } else if (a.cities > b.cities) {
+      return 1;
+    }
+    return 0;
+  });
+  console.log(orderedCities.splice(0, 5));
+};
+
+// readAllJsonFiles();
 
 console.log('Item 2 - Quantidade de Cidade por Estado.');
 citiesForStateParams('MG');
 citiesForStateParams();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+console.log('Item 3 - Estados com mais cidades.');
+statesWithMoreCities();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+console.log('Item 4 - Estados com menos cidades.');
+statesWithLessCities();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
