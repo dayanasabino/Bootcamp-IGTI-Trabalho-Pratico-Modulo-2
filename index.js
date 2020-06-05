@@ -1,5 +1,7 @@
 const fs = require('fs');
 let globalAllStates = [];
+let sumMoreCities = 0;
+let sumLessCities = 0;
 
 const readAllJsonFiles = () => {
   fs.readFile('Cidades.json', (err, data) => {
@@ -54,31 +56,31 @@ const citiesForStateParams = (state) => {
 };
 
 function citiesforAllStates() {
-  const countCities = fs.readFileSync(`Estados.json`);
-  const countCitiesParsed = JSON.parse(countCities);
-  const countStatesWithCities = countCitiesParsed.map((state) => ({
+  const readStates = fs.readFileSync(`Estados.json`);
+  const statesParsed = JSON.parse(readStates);
+  const statesWithCities = statesParsed.map((state) => ({
     state: state.Sigla,
     cities: citiesForState(state.Sigla),
   }));
-  return countStatesWithCities;
+  return statesWithCities;
 }
 
 const citiesForState = (state) => {
-  const countCities = fs.readFileSync(`States/${state}.json`);
+  const readStates = fs.readFileSync(`States/${state}.json`);
   // O método JSON.parse() analisa uma string JSON, construindo o valor ou um objeto JavaScript descrito pela string
-  const countCitiesParsed = JSON.parse(countCities);
+  const statesParsed = JSON.parse(readStates);
 
   //console.log(`${state} possui ${countCitiesParsed.length} cidade(s)`);
 
-  const totalCities = countCitiesParsed.length;
+  const totalCities = statesParsed.length;
   // Se não tiver esse retorno a quantidade de cidades fica indefinida
   return totalCities;
 };
 
 const statesWithMoreCities = () => {
-  const countCities = fs.readFileSync(`Estados.json`);
-  const countCitiesParsed = JSON.parse(countCities);
-  const countStatesWithCities = countCitiesParsed.map((state) => ({
+  const readStates = fs.readFileSync(`Estados.json`);
+  const statesParsed = JSON.parse(readStates);
+  const countStatesWithCities = statesParsed.map((state) => ({
     uf: state.Sigla,
     cities: citiesForState(state.Sigla),
   }));
@@ -92,13 +94,21 @@ const statesWithMoreCities = () => {
     return 0;
   });
   // O método slice() retorna uma cópia de parte de um array a partir de um subarray criado entre as posições início(begin) e fim(end)(fim não é necessário) de um array original. O Array original não é modificado.
-  console.log(orderedCities.splice(0, 5));
+
+  const newOrderedCities = orderedCities.slice(0, 5);
+
+  console.log(newOrderedCities);
+  sumMoreCities = newOrderedCities.reduce(
+    (acc, state) => acc + state.cities,
+    0
+  );
+  return newOrderedCities;
 };
 
 const statesWithLessCities = () => {
-  const countCities = fs.readFileSync(`Estados.json`);
-  const countCitiesParsed = JSON.parse(countCities);
-  const countStatesWithCities = countCitiesParsed.map((state) => ({
+  const readStates = fs.readFileSync(`Estados.json`);
+  const statesParsed = JSON.parse(readStates);
+  const countStatesWithCities = statesParsed.map((state) => ({
     uf: state.Sigla,
     cities: citiesForState(state.Sigla),
   }));
@@ -111,9 +121,85 @@ const statesWithLessCities = () => {
     }
     return 0;
   });
-  console.log(orderedCities.splice(0, 5));
+
+  const newOrderedCities = orderedCities.slice(0, 5);
+  console.log(newOrderedCities);
+
+  sumLessCities = newOrderedCities.reduce(
+    (acc, state) => acc + state.cities,
+    0
+  );
+  return newOrderedCities;
 };
 
+// Função criada para ser chamada e não executada diretamente
+// Ela recebe os parametros, no caso esse state diretamente da função que chamar ela
+const cityReceiveState = (state) => {
+  // Lê as cidades do arquivo json e faz o parse pra vetor
+  const readCities = fs.readFileSync(`Cidades.json`);
+  const citiesParsed = JSON.parse(readCities);
+  //  Recebe as cidades de acordo com o estado passado
+  const stateCities = citiesParsed
+    // Filtra se o id do estado é igual ao estado passado
+    .filter((city) => city.Estado === state.ID)
+    // Cria um novo array com os dados recebidos do filter
+    .map((city) => city.Nome);
+  const sortedCities = stateCities
+    // Ordena e compara
+    .sort((a, b) => {
+      if (a.length > b.length) return 1;
+      if (a.length < b.length) return -1;
+      return 0;
+    })
+    .reverse();
+
+  return sortedCities[0];
+};
+
+const cityWithLargNameAllStates = () => {
+  // Le o arquivo de estados e passa ele pra cityReceiveStates quando é chamada abaixo
+  const readStates = fs.readFileSync(`Estados.json`);
+  const statesParsed = JSON.parse(readStates);
+
+  // Cria um novo array com o retorno da chamada e a concatenação
+  const largestNamesCities = statesParsed.map(
+    // Chamada da função que retorna os estados
+    (state) => `${cityReceiveState(state)} - ${state.Sigla}`
+  );
+
+  console.log(largestNamesCities);
+};
+
+const cityWithLargeName = () => {
+  const readStates = fs.readFileSync(`Estados.json`);
+  const statesParsed = JSON.parse(readStates.toString());
+
+  const largestNamesCities = statesParsed.map(
+    (state) => `${cityReceiveState(state)} - ${state.Sigla}`
+  );
+
+  const largestNameCity = largestNamesCities.sort().sort((a, b) => {
+    if (a.length > b.length) return -1;
+    if (a.length < b.length) return 1;
+    return 0;
+  })[0];
+
+  console.log(largestNameCity);
+};
+
+const cityWithSmallName = () => {};
+
+const cityWithSmallNameAllStates = () => {};
+
+const sumStateWithMoreCities = () => {
+  console.log(sumMoreCities);
+};
+
+const sumStateWithLessCities = () => {
+  console.log(sumLessCities);
+};
+
+/** ------------------------ Saídas --------------------------- */
 // readAllJsonFiles();
 
 console.log('Item 2 - Quantidade de Cidade por Estado.');
@@ -122,13 +208,50 @@ citiesForStateParams();
 console.log(
   '_____________________________________________________________________________________________________'
 );
-console.log('Item 3 - Estados com mais cidades.');
+
+console.log('Item 3 - Os 5 Estados com mais cidades.');
 statesWithMoreCities();
 console.log(
   '_____________________________________________________________________________________________________'
 );
-console.log('Item 4 - Estados com menos cidades.');
+
+console.log('Item 4 - Os 5 Estados com menos cidades.');
 statesWithLessCities();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+
+console.log('Item 5 - Cidade com maior nome de cada estado.');
+cityWithLargNameAllStates();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+
+console.log('Item 6 - Cidade de menor nome de cada estado.');
+cityWithSmallName();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+
+console.log('Item 7 - Cidade de maior nome entre todos os estados.');
+cityWithLargeName();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+
+console.log('Item 8 - Cidade de menor nome entre todos os estados.');
+cityWithSmallNameAllStates();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+
+console.log('Item 9 - Soma das cidades dos cinco estados com mais cidades.');
+sumStateWithMoreCities();
+console.log(
+  '_____________________________________________________________________________________________________'
+);
+console.log('Item 10 - Soma das cidades dos cinco estados com menos cidades.');
+sumStateWithLessCities();
 console.log(
   '_____________________________________________________________________________________________________'
 );
